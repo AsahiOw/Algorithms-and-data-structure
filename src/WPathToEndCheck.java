@@ -22,25 +22,100 @@ public class WPathToEndCheck {
     private static final int[] DX = {1, -1, 0, 0};  // Down, Up, Right, Left
     private static final int[] DY = {0, 0, 1, -1};
 
+    private static PathPattern pattern;  // Global pattern instance
+
     /**
-     * Enhanced path validation with multiple early elimination checks
+     * Class to analyze fixed positions in the path pattern
      */
-    private static boolean canReachEnd(int x, int y, int movesLeft, long visited) {
+    private static class PathPattern {
+        private final String path;
+        private final int[] fixedRPositions;
+        private final int[] fixedDPositions;
+        private final int[] fixedLPositions;
+
+        public PathPattern(String path) {
+            this.path = path;
+            List<Integer> rPos = new ArrayList<>();
+            List<Integer> dPos = new ArrayList<>();
+            List<Integer> lPos = new ArrayList<>();
+
+            for (int i = 0; i < path.length(); i++) {
+                char c = path.charAt(i);
+                if (c == 'R') rPos.add(i);
+                else if (c == 'D') dPos.add(i);
+                else if (c == 'L') lPos.add(i);
+            }
+
+            fixedRPositions = rPos.stream().mapToInt(Integer::intValue).toArray();
+            fixedDPositions = dPos.stream().mapToInt(Integer::intValue).toArray();
+            fixedLPositions = lPos.stream().mapToInt(Integer::intValue).toArray();
+        }
+
+        public boolean canSatisfyRemainingMoves(int x, int y, int moveIndex) {
+            int remainingRight = 0;
+            int remainingDown = 0;
+            int remainingLeft = 0;
+
+            // Count remaining fixed moves after current position
+            for (int pos : fixedRPositions) {
+                if (pos >= moveIndex) remainingRight++;
+            }
+            for (int pos : fixedDPositions) {
+                if (pos >= moveIndex) remainingDown++;
+            }
+            for (int pos : fixedLPositions) {
+                if (pos >= moveIndex) remainingLeft++;
+            }
+
+            // Check if we can make all required moves from current position
+            if (y + remainingRight >= GRID_SIZE) return false;
+            if (x + remainingDown >= GRID_SIZE) return false;
+            if (y - remainingLeft < 0) return false;
+
+            return true;
+        }
+
+        public char getMoveAt(int index) {
+            return path.charAt(index);
+        }
+    }
+
+    /**
+     * Enhanced path validation with early elimination checks
+     */
+    private static boolean canReachEnd(int x, int y, int moveIndex, int movesLeft, long visited) {
         // Manhattan distance check to end position (7,0)
         int manhattanDistance = Math.abs(x - (GRID_SIZE - 1)) + Math.abs(y - 0);
         if (manhattanDistance > movesLeft) {
             return false;
         }
 
-        // Check if we have enough moves left
+        // Check if we have enough moves for remaining cells
         int unvisitedCells = GRID_SIZE * GRID_SIZE - Long.bitCount(visited);
-        if (movesLeft < unvisitedCells) {  // Must have at least enough moves for remaining cells
+        if (movesLeft < unvisitedCells) {
             return false;
         }
 
-        // Basic trapped check only near the end to avoid false positives
-        if (movesLeft < 3) {
-            if (isTrapped(x, y, visited)) {
+        // Check if we can satisfy remaining fixed moves from current position
+        if (!pattern.canSatisfyRemainingMoves(x, y, moveIndex)) {
+            return false;
+        }
+
+        // Only perform trapped check near the end
+        if (movesLeft < 5) {
+            boolean hasUnvisitedNeighbor = false;
+            for (int dir = 0; dir < 4; dir++) {
+                int newX = x + DX[dir];
+                int newY = y + DY[dir];
+                if (isValid(newX, newY)) {
+                    long pos = (long) newX * GRID_SIZE + newY;
+                    if ((visited & (1L << pos)) == 0) {
+                        hasUnvisitedNeighbor = true;
+                        break;
+                    }
+                }
+            }
+            if (!hasUnvisitedNeighbor && movesLeft > 0) {
                 return false;
             }
         }
@@ -49,112 +124,64 @@ public class WPathToEndCheck {
     }
 
     /**
-     * Check if current position is trapped (no valid moves available)
+     * Path exploration logic with early elimination
      */
-    private static boolean isTrapped(int x, int y, long visited) {
-        // Only check if we're not already at the end position
-        if (x == GRID_SIZE - 1 && y == 0) {
-            return false;
+    private static void explorePaths(int x, int y, int moveIndex, long visited, String path) {
+        // Base case: reached end of path
+        if (moveIndex == TOTAL_MOVES) {
+            if (x == GRID_SIZE - 1 && y == 0) {
+                totalPaths.incrementAndGet();
+            }
+            return;
         }
 
-        // Check if any adjacent cell is unvisited
-        for (int dir = 0; dir < 4; dir++) {
-            int newX = x + DX[dir];
-            int newY = y + DY[dir];
+        if (!canReachEnd(x, y, moveIndex, TOTAL_MOVES - moveIndex, visited)) {
+            return;
+        }
 
-            if (isValid(newX, newY)) {
+        char currentMove = path.charAt(moveIndex);
+
+        if (currentMove == '*') {
+            // Try all four directions for wildcard
+            for (int dir = 0; dir < 4; dir++) {
+                int newX = x + DX[dir];
+                int newY = y + DY[dir];
+
+                if (!isValid(newX, newY)) continue;
+
                 long pos = (long) newX * GRID_SIZE + newY;
-                if ((visited & (1L << pos)) == 0) {
-                    return false;  // Found at least one valid move
+                long bitMask = 1L << pos;
+
+                if ((visited & bitMask) == 0) {
+                    // Additional check for last move
+                    if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
+                        continue;
+                    }
+
+                    explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
                 }
             }
-        }
+        } else {
+            int dir = getDirectionIndex(currentMove);
+            if (dir == -1) return;  // Invalid direction
 
-        return true;  // No valid moves available
-    }
-
-    /**
-     * Check if there are any unreachable unvisited cells
-     */
-    private static boolean hasUnreachableRegion(int currentX, int currentY, long visited) {
-        // Convert visited bitmap to 2D grid for easier processing
-        boolean[][] grid = new boolean[GRID_SIZE][GRID_SIZE];
-        for (int i = 0; i < GRID_SIZE; i++) {
-            for (int j = 0; j < GRID_SIZE; j++) {
-                grid[i][j] = (visited & (1L << (i * GRID_SIZE + j))) != 0;
-            }
-        }
-
-        // Check each unvisited cell
-        for (int i = 0; i < GRID_SIZE; i++) {
-            for (int j = 0; j < GRID_SIZE; j++) {
-                if (!grid[i][j] && (i != currentX || j != currentY)) {
-                    boolean hasUnvisitedNeighbor = false;
-                    for (int dir = 0; dir < 4; dir++) {
-                        int newX = i + DX[dir];
-                        int newY = j + DY[dir];
-                        if (isValid(newX, newY) && !grid[newX][newY]) {
-                            hasUnvisitedNeighbor = true;
-                            break;
-                        }
-                    }
-                    if (!hasUnvisitedNeighbor) {
-                        return true;  // Found an isolated unvisited cell
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if end position is still reachable using flood fill
-     */
-    private static boolean isEndUnreachable(int currentX, int currentY, long visited) {
-        // Don't need to check if we're already at the end
-        if (currentX == GRID_SIZE - 1 && currentY == 0) {
-            return false;
-        }
-
-        // Create a copy of the visited grid for flood fill
-        boolean[][] grid = new boolean[GRID_SIZE][GRID_SIZE];
-        for (int i = 0; i < GRID_SIZE; i++) {
-            for (int j = 0; j < GRID_SIZE; j++) {
-                grid[i][j] = (visited & (1L << (i * GRID_SIZE + j))) != 0;
-            }
-        }
-
-        // Mark current position as visited
-        grid[currentX][currentY] = true;
-
-        // Do flood fill from current position
-        return !canFloodFillReachEnd(currentX, currentY, grid);
-    }
-
-    /**
-     * Helper method for flood fill
-     */
-    private static boolean canFloodFillReachEnd(int x, int y, boolean[][] grid) {
-        if (x == GRID_SIZE - 1 && y == 0) {
-            return true;  // Reached the end
-        }
-
-        grid[x][y] = true;  // Mark as visited
-
-        // Try all directions
-        for (int dir = 0; dir < 4; dir++) {
             int newX = x + DX[dir];
             int newY = y + DY[dir];
 
-            if (isValid(newX, newY) && !grid[newX][newY]) {
-                if (canFloodFillReachEnd(newX, newY, grid)) {
-                    return true;
+            if (!isValid(newX, newY)) return;
+
+            long pos = (long) newX * GRID_SIZE + newY;
+            long bitMask = 1L << pos;
+
+            if ((visited & bitMask) == 0) {
+                // Additional check for last move
+                if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
+                    return;
                 }
+
+                explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
             }
         }
-
-        return false;
     }
 
     private static class PathExplorer extends RecursiveAction {
@@ -177,8 +204,7 @@ public class WPathToEndCheck {
 
         @Override
         protected void compute() {
-            // Early termination checks
-            if (!canReachEnd(x, y, TOTAL_MOVES - moveIndex, visited)) {
+            if (!canReachEnd(x, y, moveIndex, TOTAL_MOVES - moveIndex, visited)) {
                 return;
             }
 
@@ -195,17 +221,17 @@ public class WPathToEndCheck {
             char currentMove = path.charAt(moveIndex);
             List<PathExplorer> subtasks = new ArrayList<>();
 
-            // Handle wildcard moves
             if (currentMove == '*') {
                 for (int dir = 0; dir < 4; dir++) {
                     int newX = x + DX[dir];
                     int newY = y + DY[dir];
 
+                    if (!isValid(newX, newY)) continue;
+
                     long pos = (long) newX * GRID_SIZE + newY;
                     long bitMask = 1L << pos;
 
-                    if (isValid(newX, newY) && (visited & bitMask) == 0) {
-                        // Additional check for end position
+                    if ((visited & bitMask) == 0) {
                         if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
                             continue;
                         }
@@ -220,35 +246,27 @@ public class WPathToEndCheck {
                 }
             } else {
                 int dir = getDirectionIndex(currentMove);
-                int newX = x + DX[dir];
-                int newY = y + DY[dir];
+                if (dir != -1) {
+                    int newX = x + DX[dir];
+                    int newY = y + DY[dir];
 
-                long pos = (long) newX * GRID_SIZE + newY;
-                long bitMask = 1L << pos;
+                    if (isValid(newX, newY)) {
+                        long pos = (long) newX * GRID_SIZE + newY;
+                        long bitMask = 1L << pos;
 
-                if (isValid(newX, newY) && (visited & bitMask) == 0) {
-                    // Check if this is the last move and it's not reaching the end position
-                    if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
-                        return;
+                        if ((visited & bitMask) == 0) {
+                            if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
+                                return;
+                            }
+                            explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
+                        }
                     }
-                    explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
                 }
             }
 
             if (!subtasks.isEmpty()) {
                 invokeAll(subtasks);
             }
-        }
-    }
-
-    private static void showProgress() {
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
-            long elapsedSeconds = (currentTime - startTime) / 1000;
-            System.out.printf("\rPaths found: %,d, Time elapsed: %ds, Paths/second: %,d",
-                    totalPaths.get(), elapsedSeconds,
-                    elapsedSeconds > 0 ? totalPaths.get() / elapsedSeconds : 0);
-            lastUpdateTime = currentTime;
         }
     }
 
@@ -266,76 +284,22 @@ public class WPathToEndCheck {
         };
     }
 
-    private static void explorePaths(int x, int y, int moveIndex, long visited, String path) {
-        // Base case: reached end of path
-        if (moveIndex == TOTAL_MOVES) {
-            if (x == GRID_SIZE - 1 && y == 0) {
-                totalPaths.incrementAndGet();
-            }
-            return;
-        }
-
-        char currentMove = path.charAt(moveIndex);
-
-        if (currentMove == '*') {
-            // Try all four directions for wildcard
-            for (int dir = 0; dir < 4; dir++) {
-                int newX = x + DX[dir];
-                int newY = y + DY[dir];
-
-                // Skip if move is invalid or cell is already visited
-                if (!isValid(newX, newY)) continue;
-
-                long pos = (long) newX * GRID_SIZE + newY;
-                long bitMask = 1L << pos;
-
-                if ((visited & bitMask) == 0) {
-                    // Early termination check after position validation
-                    if (!canReachEnd(newX, newY, TOTAL_MOVES - moveIndex - 1, visited | bitMask)) {
-                        continue;
-                    }
-
-                    // Additional check for last move
-                    if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
-                        continue;
-                    }
-
-                    explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
-                }
-            }
-        } else {
-            // Follow the specified direction
-            int dir = getDirectionIndex(currentMove);
-            int newX = x + DX[dir];
-            int newY = y + DY[dir];
-
-            // Skip if move is invalid
-            if (!isValid(newX, newY)) return;
-
-            long pos = (long) newX * GRID_SIZE + newY;
-            long bitMask = 1L << pos;
-
-            if ((visited & bitMask) == 0) {
-                // Early termination check after position validation
-                if (!canReachEnd(newX, newY, TOTAL_MOVES - moveIndex - 1, visited | bitMask)) {
-                    return;
-                }
-
-                // Additional check for last move
-                if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
-                    return;
-                }
-
-                explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
-            }
-        }
-    }
-
     private static boolean isValidInput(String path) {
         if (path.length() != TOTAL_MOVES) {
             return false;
         }
         return path.matches("[UDLR*]+");
+    }
+
+    private static void showProgress() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
+            long elapsedSeconds = (currentTime - startTime) / 1000;
+            System.out.printf("\rPaths found: %,d, Time elapsed: %ds, Paths/second: %,d",
+                    totalPaths.get(), elapsedSeconds,
+                    elapsedSeconds > 0 ? totalPaths.get() / elapsedSeconds : 0);
+            lastUpdateTime = currentTime;
+        }
     }
 
     public static void main(String[] args) {
@@ -348,6 +312,8 @@ public class WPathToEndCheck {
                     " characters long and contain only U, D, L, R, or *");
             return;
         }
+
+        pattern = new PathPattern(path);
 
         // Initialize parallel processing
         int processors = Runtime.getRuntime().availableProcessors();

@@ -290,3 +290,17 @@ public class TotalPath {
         scanner.close();
     }
 }
+
+//***************************************************************
+//8,934,966
+//*****DR******R******R********************R*D************L******
+//5,739
+//DDDDDDRUUUUUURDDDDDDRUUUUUURDDDDDDRUUUUUURRDLDRDLDRDLDRDLLLLLLL
+//1
+//*********************R****************L*********************D**
+//191,651
+//DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+//0
+//DDDDDDRUUUUUURDDDDDD********DDDDDDRUUUUUURRDLDRDLDRDLDRDLLLLLLL
+//1
+

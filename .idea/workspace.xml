@@ -5,7 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7e6c4564-a2cb-4dc3-b76f-a54d3ad25109" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/WPathToEndCheck.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Parallel_optimize.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Pre_compute_valid_move.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Symmetry_approach.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Symmetry_ver2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/TotalPath.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/TotalPath.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/WPathToEndCheck.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/WPathToEndCheck.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,9 +28,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="2pkqrxuGOaPspatXDxctGC8jTA1" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -33,11 +39,17 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.Parallel_optimize.executor": "Run",
+    "Application.Pre_compute_valid_move.executor": "Run",
+    "Application.Symmetry_approach.executor": "Run",
+    "Application.Symmetry_ver2.executor": "Run",
     "Application.TotalPath.executor": "Run",
+    "Application.WPathToEndCheck.executor": "Run",
     "Application.nonearlyeliminate.executor": "Run",
     "Application.singlethread.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -64,7 +76,9 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1733320628495</updated>
-      <workItem from="1733320629563" duration="11098000" />
+      <workItem from="1733320629563" duration="11970000" />
+      <workItem from="1733334297079" duration="4286000" />
+      <workItem from="1733392940310" duration="18456000" />
     </task>
     <servers />
   </component>
