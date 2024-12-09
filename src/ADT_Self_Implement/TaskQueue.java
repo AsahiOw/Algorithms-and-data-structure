@@ -24,9 +24,7 @@ public class TaskQueue {
         // For very small arrays, direct copy is faster
         if (size < SMALL_ARRAY_THRESHOLD) {
             TotalPath2.PathExplorer[] result = new TotalPath2.PathExplorer[size];
-            for (int i = 0; i < size; i++) {
-                result[i] = array[i];
-            }
+            System.arraycopy(array, 0, result, 0, size);
             return result;
         }
         return java.util.Arrays.copyOf(array, size);
@@ -45,9 +43,7 @@ public class TaskQueue {
 
         // For small arrays, manual copy is faster than System.arraycopy
         if (size < SMALL_ARRAY_THRESHOLD) {
-            for (int i = 0; i < size; i++) {
-                newArray[i] = array[i];
-            }
+            if (size >= 0) System.arraycopy(array, 0, newArray, 0, size);
         } else {
             System.arraycopy(array, 0, newArray, 0, size);
         }
@@ -60,33 +56,4 @@ public class TaskQueue {
         array = newArray;
     }
 
-    // Add bulk operations for better performance when needed
-    public void addAll(TotalPath2.PathExplorer[] tasks, int length) {
-        ensureCapacity(size + length);
-        System.arraycopy(tasks, 0, array, size, length);
-        size += length;
-    }
-
-    private void ensureCapacity(int minCapacity) {
-        if (minCapacity > array.length) {
-            int newCapacity = Math.max(minCapacity,
-                    (int)(array.length * 2));
-            resize(newCapacity);
-        }
-    }
-
-    // Optional: Method to trim excess capacity
-    public void trimToSize() {
-        if (size < array.length) {
-            resize(size);
-        }
-    }
-
-    // Optional: Clear method that helps with GC
-    public void clear() {
-        for (int i = 0; i < size; i++) {
-            array[i] = null;
-        }
-        size = 0;
-    }
 }

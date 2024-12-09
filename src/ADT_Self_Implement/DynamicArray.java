@@ -6,13 +6,6 @@ public class DynamicArray {
     private static final int DEFAULT_CAPACITY = 16;  // Increased from 10 for better power-of-2 alignment
     private static final float GROWTH_FACTOR = 1.5f; // Changed from 2x to 1.5x for more gradual growth
 
-    public DynamicArray() {
-        // Round to next power of 2 for better memory alignment
-        int capacity = DEFAULT_CAPACITY;
-        array = new long[capacity];
-        size = 0;
-    }
-
     public DynamicArray(int initialCapacity) {
         // Ensure minimum capacity and round to next power of 2
         int capacity = Math.max(DEFAULT_CAPACITY,
@@ -40,9 +33,9 @@ public class DynamicArray {
     public long get(int index) {
         // No bounds checking in release mode for performance
         // Uncomment the following lines for debug mode
-        /*if (index < 0 || index >= size) {
+        /* if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
-        }*/
+        } */
         return array[index];
     }
 
@@ -75,19 +68,11 @@ public class DynamicArray {
         // Direct array copy is faster than System.arraycopy for small arrays
         long[] newArray = new long[newCapacity];
         if (size < 128) {
-            for (int i = 0; i < size; i++) {
-                newArray[i] = array[i];
-            }
+            if (size >= 0) System.arraycopy(array, 0, newArray, 0, size);
         } else {
             System.arraycopy(array, 0, newArray, 0, size);
         }
         array = newArray;
     }
 
-    // Optional: Add trimToSize method to reduce memory usage if needed
-    public void trimToSize() {
-        if (size < array.length) {
-            array = java.util.Arrays.copyOf(array, size);
-        }
-    }
 }
