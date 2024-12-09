@@ -3,7 +3,7 @@ package ADT_Self_Implement;
 public class TaskQueue {
     private TotalPath2.PathExplorer[] array;
     private int size;
-    private static final int DEFAULT_CAPACITY = 32;  // Increased for fewer resizes
+    private static final int DEFAULT_CAPACITY = 32;  // Depend on situation, currently set it to this to reduce the resize
     private static final int SMALL_ARRAY_THRESHOLD = 64;
     private static final float LOAD_FACTOR = 0.75f;
 

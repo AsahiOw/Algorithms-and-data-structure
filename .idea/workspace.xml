@@ -5,10 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7e6c4564-a2cb-4dc3-b76f-a54d3ad25109" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/DynamicArray.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/TaskQueue.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/TotalPath2.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/TotalPath_ver2.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ADT_Self_Implement/TaskQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/TaskQueue.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,6 +53,7 @@
     "Application.Symmetry_ver2.executor": "Run",
     "Application.TotalPath.executor": "Run",
     "Application.TotalPath2.executor": "Run",
+    "Application.TotalPath_ver2.executor": "Run",
     "Application.WPathToEndCheck.executor": "Run",
     "Application.nonearlyeliminate.executor": "Run",
     "Application.singlethread.executor": "Run",
@@ -90,7 +90,7 @@
       <workItem from="1733334297079" duration="4286000" />
       <workItem from="1733392940310" duration="18456000" />
       <workItem from="1733736425511" duration="104000" />
-      <workItem from="1733736948701" duration="2400000" />
+      <workItem from="1733736948701" duration="7217000" />
     </task>
     <servers />
   </component>
