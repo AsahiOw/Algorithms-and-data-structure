@@ -5,13 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7e6c4564-a2cb-4dc3-b76f-a54d3ad25109" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Parallel_optimize.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Pre_compute_valid_move.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Symmetry_approach.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Symmetry_ver2.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/DynamicArray.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/TaskQueue.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/TotalPath2.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/TotalPath.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/TotalPath.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/WPathToEndCheck.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/WPathToEndCheck.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,6 +25,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "AsahiOw"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/AsahiOw/Algorithms-and-data-structure.git",
+    "accountId": "52507ffd-ee13-4a0d-830e-db5c56bbafcd"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -44,6 +53,7 @@
     "Application.Symmetry_approach.executor": "Run",
     "Application.Symmetry_ver2.executor": "Run",
     "Application.TotalPath.executor": "Run",
+    "Application.TotalPath2.executor": "Run",
     "Application.WPathToEndCheck.executor": "Run",
     "Application.nonearlyeliminate.executor": "Run",
     "Application.singlethread.executor": "Run",
@@ -63,8 +73,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9f38398b9061-39b83d9b5494-intellij.indexing.shared.core-IU-241.15989.150" />
-        <option value="bundled-js-predefined-1d06a55b98c1-91d5c284f522-JavaScript-IU-241.15989.150" />
+        <option value="bundled-jdk-9f38398b9061-39b83d9b5494-intellij.indexing.shared.core-IU-241.19416.15" />
+        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-IU-241.19416.15" />
       </set>
     </attachedChunks>
   </component>
@@ -79,6 +89,8 @@
       <workItem from="1733320629563" duration="11970000" />
       <workItem from="1733334297079" duration="4286000" />
       <workItem from="1733392940310" duration="18456000" />
+      <workItem from="1733736425511" duration="104000" />
+      <workItem from="1733736948701" duration="2400000" />
     </task>
     <servers />
   </component>
