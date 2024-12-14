@@ -5,9 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7e6c4564-a2cb-4dc3-b76f-a54d3ad25109" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/TotalPath_ver2.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/TotalPath3.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Final/TaskQueue.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Final/TotalPath.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ADT_Self_Implement/DynamicArray.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/DynamicArray.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ADT_Self_Implement/TaskQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/TaskQueue.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ADT_Self_Implement/TotalPath2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ADT_Self_Implement/TotalPath2.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,18 +28,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "AsahiOw"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;AsahiOw&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/AsahiOw/Algorithms-and-data-structure.git",
-    "accountId": "52507ffd-ee13-4a0d-830e-db5c56bbafcd"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/AsahiOw/Algorithms-and-data-structure.git&quot;,
+    &quot;accountId&quot;: &quot;52507ffd-ee13-4a0d-830e-db5c56bbafcd&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -48,11 +52,13 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.Parallel_optimize.executor": "Run",
+    "Application.PathFinder.executor": "Run",
     "Application.Pre_compute_valid_move.executor": "Run",
     "Application.Symmetry_approach.executor": "Run",
     "Application.Symmetry_ver2.executor": "Run",
     "Application.TotalPath.executor": "Run",
     "Application.TotalPath2.executor": "Run",
+    "Application.TotalPath3.executor": "Run",
     "Application.TotalPath_ver2.executor": "Run",
     "Application.WPathToEndCheck.executor": "Run",
     "Application.nonearlyeliminate.executor": "Run",
@@ -70,6 +76,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\RMIT\rmit_7_semester\Data Structure &amp; Algorithms\Group_Project\src" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -91,6 +102,7 @@
       <workItem from="1733392940310" duration="18456000" />
       <workItem from="1733736425511" duration="104000" />
       <workItem from="1733736948701" duration="7217000" />
+      <workItem from="1734053000251" duration="12990000" />
     </task>
     <servers />
   </component>

@@ -67,11 +67,7 @@ public class DynamicArray {
     private void resize(int newCapacity) {
         // Direct array copy is faster than System.arraycopy for small arrays
         long[] newArray = new long[newCapacity];
-        if (size < 128) {
-            if (size >= 0) System.arraycopy(array, 0, newArray, 0, size);
-        } else {
-            System.arraycopy(array, 0, newArray, 0, size);
-        }
+        System.arraycopy(array, 0, newArray, 0, size);
         array = newArray;
     }
 

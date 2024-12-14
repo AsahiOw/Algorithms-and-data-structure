@@ -1,19 +1,19 @@
-package ADT_Self_Implement;
+package Final;
 
 public class TaskQueue {
-    private TotalPath2.PathExplorer[] array;
+    private TotalPath.PathExplorer[] array;
     private int size;
     private static final int DEFAULT_CAPACITY = 64;  // Default capacity of the queue
     private static final float LOAD_FACTOR = 0.90f; // Resize the array when 90% full
 
     //  Create a Taskqueue with default capacity
     public TaskQueue() {
-        array = new TotalPath2.PathExplorer[DEFAULT_CAPACITY];
+        array = new TotalPath.PathExplorer[DEFAULT_CAPACITY];
         size = 0;
     }
 
     // Adding task to the queue
-    public void add(TotalPath2.PathExplorer task) {
+    public void add(TotalPath.PathExplorer task) {
         // Check if we need to resize before adding
         if (size >= array.length * LOAD_FACTOR) {
             resize(array.length * 2);
@@ -22,8 +22,8 @@ public class TaskQueue {
     }
 
     // Get all the current task as an array
-    public TotalPath2.PathExplorer[] getAll() {
-        TotalPath2.PathExplorer[] result = new TotalPath2.PathExplorer[size];
+    public TotalPath.PathExplorer[] getAll() {
+        TotalPath.PathExplorer[] result = new TotalPath.PathExplorer[size];
         System.arraycopy(array, 0, result, 0, size);
 
         return result;
@@ -41,7 +41,7 @@ public class TaskQueue {
 
     // Resize the array to the new capacity
     private void resize(int newCapacity) {
-        TotalPath2.PathExplorer[] newArray = new TotalPath2.PathExplorer[newCapacity];
+        TotalPath.PathExplorer[] newArray = new TotalPath.PathExplorer[newCapacity];
         System.arraycopy(array, 0, newArray, 0, size);
 
         // Clear old array references to help Garbage collection
@@ -51,5 +51,4 @@ public class TaskQueue {
 
         array = newArray;
     }
-
 }

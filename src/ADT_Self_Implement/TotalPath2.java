@@ -7,21 +7,22 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TotalPath2 {
-    // Constants for grid dimensions
+    // Static constants for grid configuration and movement
     private static final int GRID_SIZE = 8;
     private static final int TOTAL_MOVES = 63;
     private static final int PARALLEL_THRESHOLD = 10;
+    private static final int[] DX = {1, -1, 0, 0};  // Down, Up, Right, Left
+    private static final int[] DY = {0, 0, 1, -1};
+    private static final long UPDATE_INTERVAL = 1000;
 
     // Progress tracking variables
     private static final AtomicLong totalPaths = new AtomicLong(0);
     private static long lastUpdateTime = 0;
     private static long startTime = 0;
-    private static final long UPDATE_INTERVAL = 1000;
 
-    // Possible movement directions
-    private static final int[] DX = {1, -1, 0, 0};  // Down, Up, Right, Left
-    private static final int[] DY = {0, 0, 1, -1};
-
+    /**
+     * Inner class that handles path exploration using ForkJoin framework
+     */
     public static class PathExplorer extends RecursiveAction {
         private final int x, y, moveIndex;
         private final long visited;
@@ -42,121 +43,148 @@ public class TotalPath2 {
 
         @Override
         protected void compute() {
-            // Early termination checks
             if (!canReachEnd(x, y, TOTAL_MOVES - moveIndex, visited)) {
                 return;
             }
 
-            // Base case: reached end of path
-            if (moveIndex == TOTAL_MOVES) {
-                if (x == GRID_SIZE - 1 && y == 0) {
-                    totalPaths.incrementAndGet();
-                    DynamicArray currentPaths = pathsPerThread.get();
-                    currentPaths.set(threadId, currentPaths.get(threadId) + 1);
-                }
+            if (isEndOfPath()) {
+                handleEndOfPath();
                 return;
             }
 
+            processCurrentMove();
+        }
+
+        // Checks if we've reached the end of the path
+        private boolean isEndOfPath() {
+            return moveIndex == TOTAL_MOVES;
+        }
+
+        // Handles end-of-path logic, incrementing counters if valid
+        private void handleEndOfPath() {
+            if (x == GRID_SIZE - 1 && y == 0) {
+                totalPaths.incrementAndGet();
+                DynamicArray currentPaths = pathsPerThread.get();
+                currentPaths.set(threadId, currentPaths.get(threadId) + 1);
+            }
+        }
+
+        // Processes the current move based on whether it's a wildcard or directional
+        private void processCurrentMove() {
             char currentMove = path.charAt(moveIndex);
             TaskQueue subtasks = new TaskQueue();
 
-            // Handle wildcard moves
             if (currentMove == '*') {
-                for (int dir = 0; dir < 4; dir++) {
-                    int newX = x + DX[dir];
-                    int newY = y + DY[dir];
-
-                    long pos = (long) newX * GRID_SIZE + newY;
-                    long bitMask = 1L << pos;
-
-                    if (isValid(newX, newY) && (visited & bitMask) == 0) {
-                        // Additional check for end position
-                        if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
-                            continue;
-                        }
-
-                        if (moveIndex < PARALLEL_THRESHOLD) {
-                            subtasks.add(new PathExplorer(newX, newY, moveIndex + 1,
-                                    visited | bitMask, path, pathsPerThread, threadId));
-                        } else {
-                            explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
-                        }
-                    }
-                }
+                handleWildcardMove(subtasks);
             } else {
-                int dir = getDirectionIndex(currentMove);
-                int newX = x + DX[dir];
-                int newY = y + DY[dir];
-
-                long pos = (long) newX * GRID_SIZE + newY;
-                long bitMask = 1L << pos;
-
-                if (isValid(newX, newY) && (visited & bitMask) == 0) {
-                    // Check if this is the last move and it's not reaching the end position
-                    if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
-                        return;
-                    }
-                    explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
-                }
+                handleDirectionalMove(currentMove);
             }
 
             if (!subtasks.isEmpty()) {
                 invokeAll(subtasks.getAll());
             }
         }
+
+        // Handles wildcard moves by exploring all possible directions
+        private void handleWildcardMove(TaskQueue subtasks) {
+            for (int dir = 0; dir < 4; dir++) {
+                processMove(dir, subtasks);
+            }
+        }
+
+        // Handles specific directional moves
+        private void handleDirectionalMove(char move) {
+            int dir = getDirectionIndex(move);
+            processMove(dir, null);
+        }
+
+        // Processes a single move in a given direction
+        private void processMove(int dir, TaskQueue subtasks) {
+            int newX = x + DX[dir];
+            int newY = y + DY[dir];
+
+            if (isValidMove(newX, newY)) {
+                long pos = (long) newX * GRID_SIZE + newY;
+                long newVisited = visited | (1L << pos);
+
+                if (moveIndex < PARALLEL_THRESHOLD && subtasks != null) {
+                    subtasks.add(new PathExplorer(newX, newY, moveIndex + 1,
+                            newVisited, path, pathsPerThread, threadId));
+                } else {
+                    explorePaths(newX, newY, moveIndex + 1, newVisited, path);
+                }
+            }
+        }
+
+        // Validates if a move to the new position is legal
+        private boolean isValidMove(int newX, int newY) {
+            if (!isValid(newX, newY)) return false;
+
+            long pos = (long) newX * GRID_SIZE + newY;
+            long bitMask = 1L << pos;
+            if ((visited & bitMask) != 0) return false;
+
+            if (moveIndex == TOTAL_MOVES - 1) {
+                return newX == GRID_SIZE - 1 && newY == 0;
+            }
+
+            return true;
+        }
     }
 
-    /**
-     * Check if the current path can potentially reach the end point
-     */
+    // Checks if it's still possible to reach the end from current position
     private static boolean canReachEnd(int x, int y, int movesLeft, long visited) {
-        // If not enough moves left to reach the end point
-        int minMovesToEnd = Math.abs(x - (GRID_SIZE - 1)) + Math.abs(y);
-        if (minMovesToEnd > movesLeft) {
+        if (!hasEnoughMovesToReachEnd(x, y, movesLeft)) {
             return false;
         }
 
-        // If too many moves left compared to unvisited cells
-        int unvisitedCells = GRID_SIZE * GRID_SIZE - Long.bitCount(visited);
-        if (movesLeft > unvisitedCells) {
+        if (hasTooManyMovesLeft(movesLeft, visited)) {
             return false;
         }
 
-        // Check if we've created an enclosed unvisited area
         return !hasIsolatedUnvisitedCells(x, y, visited);
     }
 
-    /**
-     * Check if there are any isolated unvisited cells that can't be reached
-     */
-    private static boolean hasIsolatedUnvisitedCells(int currentX, int currentY, long visited) {
-        // If we're near the end of the path, do a more thorough check
-        if (Long.bitCount(visited) > GRID_SIZE * GRID_SIZE - 10) {
-            boolean[][] grid = new boolean[GRID_SIZE][GRID_SIZE];
-            for (int i = 0; i < GRID_SIZE; i++) {
-                for (int j = 0; j < GRID_SIZE; j++) {
-                    grid[i][j] = (visited & (1L << (i * GRID_SIZE + j))) != 0;
-                }
-            }
+    // Checks if minimum moves required is less than moves available
+    private static boolean hasEnoughMovesToReachEnd(int x, int y, int movesLeft) {
+        int minMovesToEnd = Math.abs(x - (GRID_SIZE - 1)) + Math.abs(y);
+        return minMovesToEnd <= movesLeft;
+    }
 
-            // Check each unvisited cell
-            for (int i = 0; i < GRID_SIZE; i++) {
-                for (int j = 0; j < GRID_SIZE; j++) {
-                    if (!grid[i][j] && (i != currentX || j != currentY)) {
-                        // Count accessible neighbors
-                        int accessibleNeighbors = 0;
-                        for (int dir = 0; dir < 4; dir++) {
-                            int newX = i + DX[dir];
-                            int newY = j + DY[dir];
-                            if (isValid(newX, newY) && !grid[newX][newY]) {
-                                accessibleNeighbors++;
-                            }
-                        }
-                        // If a cell has no unvisited neighbors and isn't the current cell,
-                        // it's isolated
-                        if (accessibleNeighbors == 0) {
-                            return true;
-                        }
+    // Checks if there are too many moves left compared to unvisited cells
+    private static boolean hasTooManyMovesLeft(int movesLeft, long visited) {
+        int unvisitedCells = GRID_SIZE * GRID_SIZE - Long.bitCount(visited);
+        return movesLeft > unvisitedCells;
+    }
+
+    // Checks for isolated unvisited cells that can't be reached
+    private static boolean hasIsolatedUnvisitedCells(int currentX, int currentY, long visited) {
+        if (Long.bitCount(visited) <= GRID_SIZE * GRID_SIZE - 10) {
+            return false;
+        }
+
+        boolean[][] grid = convertToGrid(visited);
+        return checkForIsolatedCells(grid, currentX, currentY);
+    }
+
+    // Converts visited bitset to 2D grid representation
+    private static boolean[][] convertToGrid(long visited) {
+        boolean[][] grid = new boolean[GRID_SIZE][GRID_SIZE];
+        for (int i = 0; i < GRID_SIZE; i++) {
+            for (int j = 0; j < GRID_SIZE; j++) {
+                grid[i][j] = (visited & (1L << (i * GRID_SIZE + j))) != 0;
+            }
+        }
+        return grid;
+    }
+
+    // Checks entire grid for isolated unvisited cells
+    private static boolean checkForIsolatedCells(boolean[][] grid, int currentX, int currentY) {
+        for (int i = 0; i < GRID_SIZE; i++) {
+            for (int j = 0; j < GRID_SIZE; j++) {
+                if (!grid[i][j] && (i != currentX || j != currentY)) {
+                    if (isIsolatedCell(grid, i, j)) {
+                        return true;
                     }
                 }
             }
@@ -164,6 +192,20 @@ public class TotalPath2 {
         return false;
     }
 
+    // Checks if a specific cell is isolated (no unvisited neighbors)
+    private static boolean isIsolatedCell(boolean[][] grid, int x, int y) {
+        int accessibleNeighbors = 0;
+        for (int dir = 0; dir < 4; dir++) {
+            int newX = x + DX[dir];
+            int newY = y + DY[dir];
+            if (isValid(newX, newY) && !grid[newX][newY]) {
+                accessibleNeighbors++;
+            }
+        }
+        return accessibleNeighbors == 0;
+    }
+
+    // Displays progress of path finding
     private static void showProgress() {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastUpdateTime >= UPDATE_INTERVAL) {
@@ -175,10 +217,12 @@ public class TotalPath2 {
         }
     }
 
+    // Validates if coordinates are within grid bounds
     private static boolean isValid(int x, int y) {
         return x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE;
     }
 
+    // Converts direction character to index
     private static int getDirectionIndex(char direction) {
         return switch (direction) {
             case 'D' -> 0;
@@ -189,6 +233,15 @@ public class TotalPath2 {
         };
     }
 
+    // Validates input path string
+    private static boolean isValidInput(String path) {
+        if (path.length() != TOTAL_MOVES) {
+            return false;
+        }
+        return path.matches("[UDLR*]+");
+    }
+
+    // Explores all possible paths from current position
     private static void explorePaths(int x, int y, int moveIndex, long visited, String path) {
         if (moveIndex == TOTAL_MOVES) {
             if (x == GRID_SIZE - 1 && y == 0) {
@@ -198,46 +251,46 @@ public class TotalPath2 {
         }
 
         char currentMove = path.charAt(moveIndex);
-
         if (currentMove == '*') {
-            for (int dir = 0; dir < 4; dir++) {
-                int newX = x + DX[dir];
-                int newY = y + DY[dir];
-
-                long pos = (long) newX * GRID_SIZE + newY;
-                long bitMask = 1L << pos;
-
-                if (isValid(newX, newY) && (visited & bitMask) == 0) {
-                    if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
-                        continue;
-                    }
-                    explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
-                }
-            }
+            exploreWildcardMove(x, y, moveIndex, visited, path);
         } else {
-            int dir = getDirectionIndex(currentMove);
-            int newX = x + DX[dir];
-            int newY = y + DY[dir];
-
-            long pos = (long) newX * GRID_SIZE + newY;
-            long bitMask = 1L << pos;
-
-            if (isValid(newX, newY) && (visited & bitMask) == 0) {
-                if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
-                    return;
-                }
-                explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
-            }
+            exploreDirectionalMove(x, y, moveIndex, visited, path, currentMove);
         }
     }
 
-    private static boolean isValidInput(String path) {
-        if (path.length() != TOTAL_MOVES) {
-            return false;
+    // Handles wildcard move exploration
+    private static void exploreWildcardMove(int x, int y, int moveIndex, long visited, String path) {
+        for (int dir = 0; dir < 4; dir++) {
+            processSingleMove(x, y, moveIndex, visited, path, dir);
         }
-        return path.matches("[UDLR*]+");
     }
 
+    // Handles directional move exploration
+    private static void exploreDirectionalMove(int x, int y, int moveIndex, long visited, String path, char move) {
+        int dir = getDirectionIndex(move);
+        processSingleMove(x, y, moveIndex, visited, path, dir);
+    }
+
+    // Processes a single move in the path
+    private static void processSingleMove(int x, int y, int moveIndex, long visited, String path, int dir) {
+        int newX = x + DX[dir];
+        int newY = y + DY[dir];
+
+        if (!isValid(newX, newY)) return;
+
+        long pos = (long) newX * GRID_SIZE + newY;
+        long bitMask = 1L << pos;
+
+        if ((visited & bitMask) != 0) return;
+
+        if (moveIndex == TOTAL_MOVES - 1 && (newX != GRID_SIZE - 1 || newY != 0)) {
+            return;
+        }
+
+        explorePaths(newX, newY, moveIndex + 1, visited | bitMask, path);
+    }
+
+    // Main entry point of the program
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Input:\n");
@@ -249,50 +302,65 @@ public class TotalPath2 {
             return;
         }
 
-        // Initialize parallel processing
+        runParallelPathExploration(path);
+        scanner.close();
+    }
+
+    // Initializes and runs parallel path exploration
+    private static void runParallelPathExploration(String path) {
         int processors = Runtime.getRuntime().availableProcessors();
         System.out.println("\nUsing " + processors + " processor cores");
-        ForkJoinPool pool = ForkJoinPool.commonPool();
 
-        // Initialize thread-specific counters using custom DynamicArray
+        ForkJoinPool pool = ForkJoinPool.commonPool();
+        AtomicReference<DynamicArray> pathsPerThread = initializeThreadCounters(processors);
+
+        startTiming();
+        System.out.println("Starting parallel path exploration...\n");
+
+        PathExplorer rootTask = new PathExplorer(0, 0, 0, 1L, path, pathsPerThread, 0);
+        executeAndMonitor(pool, rootTask);
+
+        displayResults();
+    }
+
+    // Initializes thread-specific counters
+    private static AtomicReference<DynamicArray> initializeThreadCounters(int processors) {
         DynamicArray initialArray = new DynamicArray(processors);
         for (int i = 0; i < processors; i++) {
             initialArray.add(0);
         }
-        AtomicReference<DynamicArray> pathsPerThread = new AtomicReference<>(initialArray);
+        return new AtomicReference<>(initialArray);
+    }
 
-        // Start timing
+    // Initializes timing variables
+    private static void startTiming() {
         startTime = System.currentTimeMillis();
         lastUpdateTime = startTime;
+    }
 
-        System.out.println("Starting parallel path exploration...\n");
-
-        // Start parallel processing
-        long initialVisited = 1L;
-        PathExplorer rootTask = new PathExplorer(0, 0, 0, initialVisited, path, pathsPerThread, 0);
+    // Executes and monitors the path exploration task
+    private static void executeAndMonitor(ForkJoinPool pool, PathExplorer rootTask) {
         pool.execute(rootTask);
-
-        // Show progress while computing
         while (!rootTask.isDone()) {
             showProgress();
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                break;
+                return;
             }
         }
+    }
 
+    // Displays final results of path exploration
+    private static void displayResults() {
         long endTime = System.currentTimeMillis();
         long totalTime = endTime - startTime;
 
-        // Show final results
         System.out.println("\n\nFinal Results:");
         System.out.println("Total paths: " + totalPaths.get());
         System.out.println("Time (ms): " + totalTime);
         System.out.printf("Average paths per second: %,.2f%n",
                 (totalPaths.get() * 1000.0) / totalTime);
-
-        scanner.close();
     }
 }
