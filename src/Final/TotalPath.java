@@ -9,7 +9,13 @@ public class TotalPath {
     // Constants for grid dimensions
     private static final int GRID_SIZE = 8;
     private static final int TOTAL_MOVES = 63;
-    private static final int PARALLEL_THRESHOLD = 10;
+
+    // Threshold for parallelism
+    // This usually depends on the size of the problem, the computer memory and the number of available processors.
+    // 1 for only Sequential processing, 63 for only Parallel processing.
+    // 2-62 for hybrid processing, where the problem is divided into smaller subproblems and solved sequentially.
+    // 11 is a good balance for this problem for my computer, each computer may have different optimal threshold.
+    private static final int PARALLEL_THRESHOLD = 11;
 
     // Single counter for all paths
     private static final AtomicLong totalPaths = new AtomicLong(0);
@@ -230,7 +236,7 @@ public class TotalPath {
         }
 
         int processors = Runtime.getRuntime().availableProcessors();
-        System.out.println("\nUsing " + processors + " processor cores");
+        System.out.println("\nUsing " + processors + " processor threads");
         ForkJoinPool pool = ForkJoinPool.commonPool();
 
         // Start timing
